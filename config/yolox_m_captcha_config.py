@@ -115,8 +115,8 @@ data = dict(
         classes=classes),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/val.json',
-        img_prefix=data_root + 'images/val/',
+        ann_file=data_root + 'annotations/test.json',
+        img_prefix=data_root + 'images/test/',
         pipeline=test_pipeline,
         classes=classes),
     )

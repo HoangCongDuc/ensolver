@@ -1,4 +1,4 @@
-_base_ = ['../configs/_base_/schedules/schedule_1x.py', '../configs/_base_/default_runtime.py']
+_base_ = ['../mmdetection/configs/_base_/schedules/schedule_1x.py', '../mmdetection/configs/_base_/default_runtime.py']
 custom_imports = dict(imports=['config.pipeline'], allow_failed_imports=False)
 
 # img_scale = (640, 640)  # height, width
@@ -115,8 +115,8 @@ data = dict(
         classes=classes),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/val.json',
-        img_prefix=data_root + 'images/val/',
+        ann_file=data_root + 'annotations/test.json',
+        img_prefix=data_root + 'images/test/',
         pipeline=test_pipeline,
         classes=classes),
     )
