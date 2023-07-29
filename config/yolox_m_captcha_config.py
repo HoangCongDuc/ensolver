@@ -2,14 +2,12 @@ _base_ = ['../mmdetection/configs/_base_/schedules/schedule_1x.py', '../mmdetect
 custom_imports = dict(imports=['config.pipeline'], allow_failed_imports=False)
 
 img_scale = (640, 640)  # height, width
-# img_scale = (320, 320)
 
 # model settings
 model = dict(
     type='YOLOX',
     input_size=img_scale,
     random_size_range=(15, 25),
-    # random_size_range=(8, 12),
     random_size_interval=10,
     backbone=dict(type='CSPDarknet', deepen_factor=0.67, widen_factor=0.75),
     neck=dict(
@@ -18,11 +16,8 @@ model = dict(
         out_channels=192,
         num_csp_blocks=2),
     bbox_head=dict(
-        # type='YOLOXHead', num_classes=80, in_channels=128, feat_channels=128),
         type='YOLOXHead', num_classes=62, in_channels=192, feat_channels=192),
     train_cfg=dict(assigner=dict(type='SimOTAAssigner', center_radius=2.5)),
-    # In order to align the source code, the threshold of the val phase is
-    # 0.01, and the threshold of the test phase is 0.001.
     test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)))
 
 # dataset settings
@@ -35,13 +30,7 @@ train_pipeline = [
     dict(
         type='RandomAffine',
         scaling_ratio_range=(0.1, 2),
-        # border=(-img_scale[0] // 2, -img_scale[1] // 2)
         ),
-    # dict(
-    #     type='MixUp',
-    #     img_scale=img_scale,
-    #     ratio_range=(0.8, 1.6),
-    #     pad_val=114.0),
     dict(type='YOLOXHSVRandomAug'),
     dict(type='RandomFlipColor', p=0.5),
     dict(type='RandomGrayscale', p=0.1),
@@ -50,20 +39,14 @@ train_pipeline = [
     # There shouldn't be random flip, but removing it breaks the pipeline
     # for simplicity, we keep it but with very small ratio, so it should never be invoked
     dict(type='RandomFlip', flip_ratio=1e-6),  
-    # According to the official implementation, multi-scale
-    # training is not considered here but in the
-    # 'mmdet/models/detectors/yolox.py'.
     dict(type='Resize', img_scale=img_scale, keep_ratio=True),
     dict(
         type='Pad',
         pad_to_square=True,
-        # If the image is three-channel, the pad value needs
-        # to be set separately for each channel.
         pad_val=dict(img=(114.0, 114.0, 114.0))),
     dict(type='FilterAnnotations', min_gt_bbox_wh=(1, 1), keep_empty=False),
     dict(type='DefaultFormatBundle'),
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'],
-        #  meta_keys=('filename', 'ori_filename', 'ori_shape', 'img_shape', 'pad_shape', 'scale_factor', 'img_norm_cfg')
          )
 ]
 
@@ -71,9 +54,7 @@ train_dataset = dict(
     type='MultiImageMixDataset',
     dataset=dict(
         type=dataset_type,
-        # ann_file=data_root + 'annotations/instances_train2017.json',
         ann_file=data_root + 'annotations/train.json',
-        # img_prefix=data_root + 'train2017/',
         img_prefix=data_root + 'images/train/',
         pipeline=[
             dict(type='LoadImageFromFile'),
@@ -92,7 +73,6 @@ test_pipeline = [
         flip=False,
         transforms=[
             dict(type='Resize', keep_ratio=True),
-            # dict(type='RandomFlip'),
             dict(
                 type='Pad',
                 pad_to_square=True,
@@ -122,7 +102,6 @@ data = dict(
     )
 
 # optimizer
-# default 8 gpu
 optimizer = dict(
     type='SGD',
     lr=0.01,
@@ -133,7 +112,6 @@ optimizer = dict(
 optimizer_config = dict(grad_clip=None)
 
 max_epochs = 10
-# num_last_epochs = 15
 num_last_epochs = 2
 resume_from = None
 interval = 1
@@ -171,20 +149,9 @@ custom_hooks = [
 checkpoint_config = dict(interval=interval)
 evaluation = dict(
     save_best='auto',
-    # The evaluation interval is 'interval' when running epoch is
-    # less than ‘max_epochs - num_last_epochs’.
-    # The evaluation interval is 1 when running epoch is greater than
-    # or equal to ‘max_epochs - num_last_epochs’.
     interval=interval,
-    # interval=max_epochs,
     dynamic_intervals=[(max_epochs - num_last_epochs, 1)],
     metric='bbox')
 log_config = dict(interval=10)
 
-# NOTE: `auto_scale_lr` is for automatically scaling LR,
-# USER SHOULD NOT CHANGE ITS VALUES.
-# base_batch_size = (8 GPUs) x (8 samples per GPU)
-# auto_scale_lr = dict(base_batch_size=64)
 auto_scale_lr = dict(base_batch_size=32)
-
-# load_from = 'checkpoints/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth'
