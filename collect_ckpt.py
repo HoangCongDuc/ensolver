@@ -12,6 +12,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     work_dir=  args.work_dir
     dst_dir = args.dst_dir
+    os.makedirs(dst_dir, exist_ok=True)
     
     ckpts = glob.glob(f'{work_dir}/**/*best*')
     for i, ckpt_file in enumerate(ckpts):

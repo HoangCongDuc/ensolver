@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument('--max-char', help="Maximum number of characters", type=int, default=9)
     parser.add_argument('--img-width', help='Width of images', type=int, default=400)
     parser.add_argument('--img-height', help='Height of images', type=int, default=150)
+    parser.add_argument('--seed', type=int, default=0)
     args = parser.parse_args()
     return args
 
@@ -35,6 +36,7 @@ def gen_image(generator, img_id, split, args):
         'file_name': filename
     }
     annotations = []
+    text_gt = []
     for i in range(char_count):
         bbox = bboxes[i]
         ann = {
@@ -46,7 +48,10 @@ def gen_image(generator, img_id, split, args):
             'iscrowd': 0
         }
         annotations.append(ann)
-        
+        text_gt.append(dictionary[chars_idx[i]])
+    text_gt = ''.join(text_gt)
+    image_meta['text'] = text_gt
+
     path = os.path.join(args.save_dir, 'images', split, filename)
     image.save(path)
     return {'image': image_meta, 'annotations': annotations}
@@ -104,6 +109,7 @@ if __name__ == '__main__':
     os.makedirs(args.save_dir, exist_ok=True)
     os.makedirs(args.save_dir + '/images', exist_ok=True)
     os.makedirs(args.save_dir + '/annotations', exist_ok=True)
+    random.seed(args.seed)
     gen_dataset(args, 'train', args.train_samples)
     gen_dataset(args, 'val', args.val_samples)
     gen_dataset(args, 'test', args.val_samples)

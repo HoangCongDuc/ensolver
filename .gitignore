@@ -160,5 +160,7 @@ cython_debug/
 #.idea/
 
 data/
+testdata/
 mmdetection/
 work_dirs/
+models/
